@@ -3,7 +3,7 @@ import re
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 
-from prompts import RESUME_ANALYSIS_PROMPT, QUICK_TIPS_PROMPT
+from src.prompts import RESUME_ANALYSIS_PROMPT, QUICK_TIPS_PROMPT
 
 load_dotenv()
 
