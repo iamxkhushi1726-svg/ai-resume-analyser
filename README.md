@@ -83,7 +83,7 @@ Ensure your operating terminal has Python 3.10+ configured alongside an isolated
 
 ```bash
 # Clone the repository source tree
-git clone [https://github.com/iamxkhushi1726-svg/ai-resume-analyser.git]
+git clone https://github.com/iamxkhushi1726-svg/ai-resume-analyser.git
 cd ai-resume-analyser
 
 # Build and activate isolated virtual environment
