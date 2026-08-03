@@ -1,6 +1,6 @@
 # 🧠 AI Resume Analyser
 
-> Project 08/100 — Building a strong GitHub portfolio from scratch.
+> Project 08 — Building a strong GitHub portfolio from scratch.
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://iamxkhushi1726-svg-ai-resume-analyser-app-ffqp2d.streamlit.app/)
 
@@ -127,10 +127,6 @@ ai-resume-analyser/
 - How to write structured prompt templates that produce parseable output
 - How to extract and clean text from PDF files with PyPDF2
 - How to securely manage API keys with dotenv in Streamlit Cloud
-
-## Part of 100 Projects Challenge
-
-Project 08 of my 100-project challenge to secure AI/ML internships.
 
 ⭐ If you like this project, consider giving it a star.
 
