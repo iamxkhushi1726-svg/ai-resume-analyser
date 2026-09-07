@@ -10,12 +10,13 @@ from src.prompts import RESUME_ANALYSIS_PROMPT, QUICK_TIPS_PROMPT
 load_dotenv()
 
 
-DEFAULT_MODEL = "llama-3.1-8b-instant"
+# Use a currently supported Groq model.
+DEFAULT_MODEL = "llama-3.3-70b-versatile"
 
 
 def get_llm(
-    model_name: str = DEFAULT_MODEL,
-    temperature: float = 0.3,
+    model_name=DEFAULT_MODEL,
+    temperature=0.3,
 ):
     """Create and return the Groq LLM client."""
 
@@ -23,8 +24,8 @@ def get_llm(
 
     if not api_key:
         raise ValueError(
-            "GROQ_API_KEY not found. "
-            "Add it to Streamlit Cloud Secrets."
+            "GROQ_API_KEY is missing. "
+            "Add GROQ_API_KEY to Streamlit Cloud Secrets."
         )
 
     return ChatGroq(
@@ -34,10 +35,7 @@ def get_llm(
     )
 
 
-def analyse_resume(
-    resume_text: str,
-    job_description: str,
-) -> dict:
+def analyse_resume(resume_text, job_description):
     """Analyse a resume against a job description."""
 
     if not resume_text or not resume_text.strip():
@@ -59,10 +57,13 @@ def analyse_resume(
 
     raw_output = response.content
 
+    if not raw_output:
+        raise ValueError("Groq returned an empty response.")
+
     return parse_analysis_output(raw_output)
 
 
-def get_quick_tips(resume_text: str) -> str:
+def get_quick_tips(resume_text):
     """Generate quick resume improvement tips."""
 
     if not resume_text or not resume_text.strip():
@@ -81,7 +82,7 @@ def get_quick_tips(resume_text: str) -> str:
     return response.content.strip()
 
 
-def parse_analysis_output(raw: str) -> dict:
+def parse_analysis_output(raw):
     """Convert LLM output into a structured dictionary."""
 
     result = {
@@ -104,28 +105,19 @@ def parse_analysis_output(raw: str) -> dict:
     )
 
     if score_match:
-        result["score"] = max(
-            0,
-            min(int(score_match.group(1)), 100),
-        )
+        score = int(score_match.group(1))
+        result["score"] = max(0, min(score, 100))
 
-    def extract_section(
-        section_name: str,
-        text: str,
-    ) -> str:
-
+    def extract_section(section_name, text):
         pattern = (
-            rf"(?:\*{{0,2}}\s*"
-            rf"{re.escape(section_name)}"
-            rf"\s*\*{{0,2}}\s*:?\s*)"
-            rf"(.*?)"
-            rf"(?="
-            rf"\n\s*\*{{0,2}}\s*"
-            rf"(?:MATCH\s*SCORE|STRENGTHS|"
-            rf"SKILL\s*GAPS|RESUME\s*IMPROVEMENTS|"
-            rf"KEYWORDS\s*TO\s*ADD|VERDICT)"
-            rf"\b"
-            rf"|\Z)"
+            r"\*{0,2}\s*"
+            + re.escape(section_name)
+            + r"\s*\*{0,2}\s*:?\s*"
+            r"(.*?)"
+            r"(?=\n\s*\*{0,2}\s*"
+            r"(?:MATCH SCORE|STRENGTHS|SKILL GAPS|"
+            r"RESUME IMPROVEMENTS|KEYWORDS TO ADD|VERDICT)"
+            r"\b|\Z)"
         )
 
         match = re.search(
@@ -139,80 +131,71 @@ def parse_analysis_output(raw: str) -> dict:
 
         return match.group(1).strip()
 
-    def extract_bullets(block: str) -> list:
-
+    def extract_bullets(block):
         if not block:
             return []
 
-        bullets = re.findall(
-            r"(?:^|\n)\s*[-•*]\s+(.+?)(?=\n|$)",
+        matches = re.findall(
+            r"(?:^|\n)\s*[-•*]\s+(.+)",
             block,
             re.MULTILINE,
         )
 
-        cleaned = []
+        return [
+            re.sub(r"\s+", " ", item).strip()
+            for item in matches
+            if item.strip()
+        ]
 
-        for bullet in bullets:
-            bullet = re.sub(
-                r"\s+",
-                " ",
-                bullet,
-            ).strip()
-
-            if bullet:
-                cleaned.append(bullet)
-
-        return cleaned
-
-    strengths_block = extract_section(
+    strengths = extract_section(
         "STRENGTHS",
         raw,
     )
 
-    result["strengths"] = extract_bullets(
-        strengths_block
-    )
-
-    gaps_block = extract_section(
+    gaps = extract_section(
         "SKILL GAPS",
         raw,
     )
 
-    result["gaps"] = extract_bullets(
-        gaps_block
-    )
-
-    improvements_block = extract_section(
+    improvements = extract_section(
         "RESUME IMPROVEMENTS",
         raw,
     )
 
-    result["improvements"] = extract_bullets(
-        improvements_block
-    )
-
-    keywords_block = extract_section(
+    keywords = extract_section(
         "KEYWORDS TO ADD",
         raw,
     )
 
-    if keywords_block:
-        result["keywords"] = re.sub(
-            r"\s+",
-            " ",
-            keywords_block,
-        ).strip()
-
-    verdict_block = extract_section(
+    verdict = extract_section(
         "VERDICT",
         raw,
     )
 
-    if verdict_block:
+    result["strengths"] = extract_bullets(
+        strengths
+    )
+
+    result["gaps"] = extract_bullets(
+        gaps
+    )
+
+    result["improvements"] = extract_bullets(
+        improvements
+    )
+
+    if keywords:
+        result["keywords"] = re.sub(
+            r"\s+",
+            " ",
+            keywords,
+        ).strip()
+
+    if verdict:
         result["verdict"] = re.sub(
             r"\s+",
             " ",
-            verdict_block,
+            verdict,
         ).strip()
 
     return result
