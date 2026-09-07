@@ -1,4 +1,3 @@
-```python
 from langchain_core.prompts import PromptTemplate
 
 
@@ -80,4 +79,4 @@ QUICK_TIPS_PROMPT = PromptTemplate(
     input_variables=["resume_text"],
     template=QUICK_TIPS_TEMPLATE,
 )
-```
+
