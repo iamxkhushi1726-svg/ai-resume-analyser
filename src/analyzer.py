@@ -1,4 +1,3 @@
-```python
 import os
 import re
 
@@ -217,4 +216,4 @@ def parse_analysis_output(raw: str) -> dict:
         ).strip()
 
     return result
-```
+
